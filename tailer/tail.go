@@ -244,6 +244,12 @@ func (t *Tailer) openLogPath(pathname string, seekToStart bool) error {
 		return err
 	}
 	f, err := NewFile(t.fs, pathname, t.lines, seekToStart || t.oneShot)
+	//glog生成日志会创建软连接
+	//windows环境下，不支持软连接，但是软连接名字还是被监听到，这种情况下，f==nil
+	//重现：关闭glog程序（产生日志的程序）再重启
+	if f == nil {
+		return nil
+	}
 	if err != nil {
 		// Doesn't exist yet. We're watching the directory, so we'll pick it up
 		// again on create; return successfully.
